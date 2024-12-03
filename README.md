@@ -48,8 +48,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Use custom action
-        uses: actions/arduino-library-deploy@v0
+      - name: Arduino Library Deploy
+        uses: ktauchathuranga/arduino-library-deploy@v0.0.0
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
