@@ -1,5 +1,8 @@
 name: Arduino Library Deploy
 description: A GitHub Action that checks the library version, merges the PR, and creates a release.
+branding:
+  icon: "archive"
+  color: "green"
 inputs:
   GITHUB_TOKEN:
     description: 'GitHub token for API requests.'
