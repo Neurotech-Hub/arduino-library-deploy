@@ -12,6 +12,7 @@ runs:
   steps:
     - name: Checkout PR Code
       uses: actions/checkout@v3
+      shell: bash  # Only if necessary for specific run steps
 
     - name: Get Version from Pull Request
       id: pr_version
@@ -19,6 +20,7 @@ runs:
         pr_version=$(grep '^version=' library.properties | cut -d'=' -f2)
         echo "PR version: $pr_version"
         echo "pr_version=$pr_version" >> $GITHUB_ENV
+      shell: bash  # Add shell property if using bash
 
     - name: Fetch Main Branch Version
       run: |
@@ -27,6 +29,7 @@ runs:
         main_version=$(grep '^version=' library.properties | cut -d'=' -f2)
         echo "Main version: $main_version"
         echo "main_version=$main_version" >> $GITHUB_ENV
+      shell: bash
 
     - name: Compare Versions
       id: compare_versions
@@ -37,6 +40,7 @@ runs:
         else
           echo "PR version is different from the main branch version."
         fi
+      shell: bash
 
     - name: Merge Pull Request
       if: success() && steps.compare_versions.outcome == 'success'
@@ -50,6 +54,7 @@ runs:
           -H "Accept: application/vnd.github.v3+json" \
           -d '{"commit_title":"Merge PR #'"${PR_NUMBER}"' - '"${PR_TITLE}"'","merge_method":"squash"}'
         echo "Pull request #${PR_NUMBER} merged successfully."
+      shell: bash
 
     - name: Create GitHub Release
       if: success()
@@ -63,4 +68,5 @@ runs:
         draft: false
         prerelease: false
       env:
-        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}  # Pass the token provided by the user
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+      shell: bash
