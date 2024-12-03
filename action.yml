@@ -1,5 +1,5 @@
 name: Arduino Library Deploy
-description: A GitHub Action that checks the library version, merges the PR, and creates a release.
+description: A GitHub Action that checks the library version, validates it, merges the PR, and creates a release.
 branding:
   icon: "archive"
   color: "green"
@@ -19,7 +19,7 @@ runs:
         pr_version=$(grep '^version=' library.properties | cut -d'=' -f2)
         echo "PR version: $pr_version"
         echo "pr_version=$pr_version" >> $GITHUB_ENV
-      shell: bash  # Only needed here since it's a custom script
+      shell: bash
 
     - name: Fetch Main Branch Version
       run: |
@@ -28,21 +28,36 @@ runs:
         main_version=$(grep '^version=' library.properties | cut -d'=' -f2)
         echo "Main version: $main_version"
         echo "main_version=$main_version" >> $GITHUB_ENV
-      shell: bash  # Only needed here
+      shell: bash
 
-    - name: Compare Versions
-      id: compare_versions
+    - name: Validate Versioning Rules
+      id: validate_version
       run: |
-        if [ "$pr_version" = "$main_version" ]; then
-          echo "PR version is the same as the main branch version."
+        IFS='.' read -r pr_major pr_minor pr_patch <<< "$pr_version"
+        IFS='.' read -r main_major main_minor main_patch <<< "$main_version"
+
+        if [ "$pr_major" -lt "$main_major" ] || 
+           { [ "$pr_major" -eq "$main_major" ] && [ "$pr_minor" -lt "$main_minor" ]; } || 
+           { [ "$pr_major" -eq "$main_major" ] && [ "$pr_minor" -eq "$main_minor" ] && [ "$pr_patch" -le "$main_patch" ]; }; then
+          echo "Error: PR version ($pr_version) is not valid. It must increment according to semantic versioning rules."
           exit 1
-        else
-          echo "PR version is different from the main branch version."
         fi
-      shell: bash  # Only needed here
+
+        if [ "$pr_major" -gt "$main_major" ] && { [ "$pr_minor" -ne 0 ] || [ "$pr_patch" -ne 0 ]; }; then
+          echo "Error: Major version increment requires MINOR and PATCH to reset to 0."
+          exit 1
+        fi
+
+        if [ "$pr_major" -eq "$main_major" ] && [ "$pr_minor" -gt "$main_minor" ] && [ "$pr_patch" -ne 0 ]; then
+          echo "Error: Minor version increment requires PATCH to reset to 0."
+          exit 1
+        fi
+
+        echo "Version $pr_version is valid."
+      shell: bash
 
     - name: Merge Pull Request
-      if: success() && steps.compare_versions.outcome == 'success'
+      if: success() && steps.validate_version.outcome == 'success'
       run: |
         PR_NUMBER=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)
         PR_TITLE=$(jq --raw-output .pull_request.title $GITHUB_EVENT_PATH)
@@ -53,7 +68,7 @@ runs:
           -H "Accept: application/vnd.github.v3+json" \
           -d '{"commit_title":"Merge PR #'"${PR_NUMBER}"' - '"${PR_TITLE}"'","merge_method":"squash"}'
         echo "Pull request #${PR_NUMBER} merged successfully."
-      shell: bash  # Only needed here
+      shell: bash
 
     - name: Create GitHub Release
       if: success()
@@ -68,3 +83,4 @@ runs:
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        
