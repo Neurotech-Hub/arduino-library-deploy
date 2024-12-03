@@ -49,7 +49,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Arduino Library Deploy
-        uses: ktauchathuranga/arduino-library-deploy@v0.0.0
+        uses: ktauchathuranga/arduino-library-deploy@v0.1.7
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
