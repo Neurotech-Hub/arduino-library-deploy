@@ -6,7 +6,7 @@ branding:
 inputs:
   GITHUB_TOKEN:
     description: 'GitHub token for API requests.'
-    required: true
+    required: false
     default: ${{ secrets.GITHUB_TOKEN }}
 runs:
   using: "composite"
