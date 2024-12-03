@@ -53,6 +53,7 @@ runs:
           -H "Accept: application/vnd.github.v3+json" \
           -d '{"commit_title":"Merge PR #'"${PR_NUMBER}"' - '"${PR_TITLE}"'","merge_method":"squash"}'
         echo "Pull request #${PR_NUMBER} merged successfully."
+      shell: bash  # Only needed here
 
     - name: Create GitHub Release
       if: success()
