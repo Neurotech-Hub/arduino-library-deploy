@@ -49,7 +49,7 @@ runs:
         echo "Merging PR #${PR_NUMBER} titled \"${PR_TITLE}\""
         API_URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/merge"
         curl -X PUT "${API_URL}" \
-          -H "Authorization: token ${GITHUB_TOKEN}" \
+          -H "Authorization: token ${{ inputs.GITHUB_TOKEN }}" \
           -H "Accept: application/vnd.github.v3+json" \
           -d '{"commit_title":"Merge PR #'"${PR_NUMBER}"' - '"${PR_TITLE}"'","merge_method":"squash"}'
         echo "Pull request #${PR_NUMBER} merged successfully."
