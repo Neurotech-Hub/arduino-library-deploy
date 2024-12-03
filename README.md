@@ -1,19 +1,23 @@
-# GitHub Action: Check Library Version, Merge PR, and Create Release
+# GitHub Action: Check Library Version, Validate, Merge PR, and Create Release
 
 ## Overview
 
-This GitHub Action automates the process of checking the version in a pull request, comparing it with the version in the main branch, and performing actions based on the comparison. If the version in the pull request differs from the version in the main branch, the action will:
+This GitHub Action streamlines the process of managing library versions in pull requests for Arduino projects. It automates the validation, merging, and release creation, ensuring your library versions adhere to semantic versioning standards and proper version progression.
 
-1. **Merge the Pull Request**: If the version differs, the pull request is automatically merged.
-2. **Create a Release**: A GitHub release is created with the version from the pull request.
+If the version in the pull request meets the validation criteria, the action will:
 
-This action is ideal for Arduino library repositories where version management is important, ensuring that every pull request is checked for version consistency and is merged automatically if valid.
+1. **Validate the Version**: Ensures the version progression follows semantic versioning rules and is logically correct compared to the current version.
+2. **Merge the Pull Request**: Automatically merges the pull request if the version is valid.
+3. **Create a Release**: Generates a GitHub release with the validated version.
+
+This action is perfect for Arduino library repositories where version consistency and correctness are critical.
 
 ## Features
 
-- **Version Checking**: Compares the version specified in `library.properties` of the pull request with the version in the `main` branch.
-- **Pull Request Merging**: Automatically merges pull requests with a new version number.
-- **Release Creation**: Automatically creates a GitHub release with the specified version.
+- **Version Validation**: Checks that the pull request version differs from the main branch version and follows semantic versioning rules (e.g., v1.0.1 cannot follow v2.0.0).
+- **Automated Pull Request Merging**: Automatically merges valid pull requests.
+- **Release Creation**: Automatically creates a GitHub release with the pull request version.
+- **Error Handling**: Rejects pull requests with invalid or duplicate versions.
 
 ## Inputs
 
@@ -23,9 +27,10 @@ This action is ideal for Arduino library repositories where version management i
 
 ## Outputs
 
-This action does not have any direct outputs but performs the following tasks:
-- Merges pull requests where the version is different from the main branch.
-- Creates a GitHub release with the version from the pull request.
+This action does not produce direct outputs but performs the following tasks:
+- Validates version numbers and rejects invalid pull requests.
+- Merges pull requests with a valid, new version.
+- Creates a GitHub release with the new version.
 
 ## Usage
 
@@ -33,39 +38,50 @@ This action is triggered on the `pull_request` event when a pull request is open
 
 ### Example Workflow
 
-Here is an example of how to integrate this action into your workflow:
+Below is an example of how to use this action in your workflow:
 
 ```yaml
-name: Check Library Version, Merge PR, and Create Release
+name: Check Library Version, Validate, Merge PR, and Create Release
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  check-version-and-release:
+  validate-and-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Arduino Library Deploy
-        uses: ktauchathuranga/arduino-library-deploy@v0.1.7
+        uses: ktauchathuranga/arduino-library-deploy@v0.2.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ### Explanation of the Workflow
 
-1. **Checkout PR Code**: This step uses the `actions/checkout@v3` to clone the pull request code.
-2. **Get Version from PR**: Extracts the version from the `library.properties` file in the pull request.
-3. **Fetch Main Branch Version**: Checks out the `library.properties` file from the main branch to compare versions.
-4. **Compare Versions**: Compares the version from the pull request with the version in the main branch. If they are the same, the workflow fails (exit status 1).
-5. **Merge Pull Request**: If the versions differ, the pull request is automatically merged using the GitHub API.
-6. **Create Release**: A GitHub release is created with the new version from the pull request.
+1. **Checkout PR Code**: Uses `actions/checkout@v3` to clone the pull request code for inspection.
+2. **Extract PR Version**: Retrieves the `version` field from `library.properties` in the pull request.
+3. **Fetch Main Branch Version**: Checks out the main branch version of `library.properties` for comparison.
+4. **Validate Version**: Ensures the pull request version is:
+   - Different from the main branch version.
+   - Progressing logically according to semantic versioning rules (e.g., v1.0.1 cannot follow v2.0.0).
+   - Does not skip patch or minor versions inappropriately.
+5. **Merge Pull Request**: If the version is valid, the pull request is automatically merged using the GitHub API.
+6. **Create Release**: Generates a GitHub release with the pull request version, including a changelog.
+
+## Version Validation Rules
+
+- Versions must follow semantic versioning (`v<major>.<minor>.<patch>`).
+- The pull request version must be greater than the current main branch version.
+- Invalid cases include:
+  - A smaller version number following a larger one (e.g., `v1.0.0` after `v2.0.0`).
+  - Skipping intermediate patch or minor versions without justification (e.g., `v0.1.0` followed directly by `v0.1.3`).
 
 ## Requirements
 
-- **GitHub Token**: Ensure that your repository has the `GITHUB_TOKEN` secret available. This token is automatically provided by GitHub for interacting with the repository API.
+- **GitHub Token**: Ensure your repository includes the `GITHUB_TOKEN` secret, which is automatically provided by GitHub for repository API interactions.
 
 ## License
 
@@ -73,4 +89,4 @@ This action is licensed under the MIT License. See the `LICENSE` file for more d
 
 ## Contributing
 
-Feel free to fork this project, make improvements, and submit pull requests. Contributions are always welcome!
+We welcome contributions! Feel free to fork this project, suggest improvements, and submit pull requests. Your input helps enhance this action for everyone.
