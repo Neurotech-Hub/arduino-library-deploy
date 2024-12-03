@@ -1,4 +1,4 @@
-name: Check Library Version, Merge PR, and Create Release
+name: Arduino Library Deploy
 description: A GitHub Action that checks the library version, merges the PR, and creates a release.
 inputs:
   GITHUB_TOKEN:
