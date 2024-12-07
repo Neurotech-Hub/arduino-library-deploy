@@ -58,7 +58,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Arduino Library Deploy
         uses: ktauchathuranga/arduino-library-deploy@v2.1.3
-        with:
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
