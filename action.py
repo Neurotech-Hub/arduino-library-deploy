@@ -83,7 +83,7 @@ def create_release():
 
     release_data = {
         'tag_name': f'v{pr_version}',
-        'release_name': f'Release v{pr_version}',
+        'name': f'Release v{pr_version}',
         'body': f'Changelog:\n- Updated to version {pr_version}',
         'draft': False,
         'prerelease': False
