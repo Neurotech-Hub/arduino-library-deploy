@@ -3,6 +3,12 @@
 
 set -e
 
+# Ensure GITHUB_TOKEN is passed as an argument
+if [ -z "$GITHUB_TOKEN" ]; then
+  echo "Error: GITHUB_TOKEN is not set!"
+  exit 1
+fi
+
 # Add the repository to Git's safe directory list
 git config --global --add safe.directory /github/workspace
 
@@ -13,7 +19,7 @@ PR_VERSION=$(grep '^version=' library.properties | cut -d'=' -f2)
 MAIN_VERSION=$(git fetch origin main && git checkout origin/main -- library.properties && grep '^version=' library.properties | cut -d'=' -f2)
 
 # Export variables for Python script
-export GITHUB_TOKEN=$1
+export GITHUB_TOKEN=$GITHUB_TOKEN
 export PR_NUMBER
 export PR_TITLE
 export pr_version=$PR_VERSION
