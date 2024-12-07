@@ -9,6 +9,9 @@ RUN apt-get update && \
 # Set the working directory
 WORKDIR /action
 
+# Mark the GitHub Actions workspace as a safe Git directory
+RUN git config --global --add safe.directory /github/workspace
+
 # Copy the entrypoint script into the container
 COPY entrypoint.sh /action/entrypoint.sh
 
