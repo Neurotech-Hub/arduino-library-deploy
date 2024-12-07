@@ -11,14 +11,24 @@ main_version = os.getenv('main_version')
 # GitHub API URL to merge PR
 GITHUB_API_URL = f'https://api.github.com/repos/{os.getenv("GITHUB_REPOSITORY")}/pulls/{os.getenv("PR_NUMBER")}/merge'
 
-# Function to validate the versioning rules
+import semver
+
 def validate_version(pr_version, main_version):
-    pr_major, pr_minor, pr_patch = map(int, pr_version.split('.'))
-    main_major, main_minor, main_patch = map(int, main_version.split('.'))
+    try:
+        # Ensure versions are valid semantic versions
+        semver.parse(pr_version)
+        semver.parse(main_version)
+    except ValueError:
+        print(f"Error: One of the versions ({pr_version} or {main_version}) is not a valid semantic version.")
+        sys.exit(1)
+
+    # Parse version parts
+    pr_major, pr_minor, pr_patch, pr_prerelease, _ = semver.parse_version_info(pr_version)
+    main_major, main_minor, main_patch, _, _ = semver.parse_version_info(main_version)
 
     # Ensure PR version is greater than the main version
     if semver.compare(pr_version, main_version) <= 0:
-        print(f"Error: PR version ({pr_version}) is not valid. It must increment according to semantic versioning rules.")
+        print(f"Error: PR version ({pr_version}) must be greater than main version ({main_version}).")
         sys.exit(1)
 
     # Major version increment: minor and patch must reset to 0
@@ -38,6 +48,10 @@ def validate_version(pr_version, main_version):
         print(f"Error: Patch version increment must be sequential. Current patch: {main_patch}, PR patch: {pr_patch}.")
         sys.exit(1)
 
+    # Pre-release validation (if applicable)
+    if pr_prerelease:
+        print(f"Warning: PR version ({pr_version}) includes a pre-release tag. This is acceptable if intended.")
+    
     print(f"Version {pr_version} is valid.")
 
 # Function to merge PR
