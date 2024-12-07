@@ -13,7 +13,10 @@ WORKDIR /action
 # Copy the Python script into the container
 COPY action.py /action/action.py
 
-# Copy the entrypoint script if you prefer to use it for running the Python script
+# Mark the GitHub Actions workspace as a safe Git directory
+RUN git config --global --add safe.directory /github/workspace
+
+# Copy the entrypoint script into the container
 COPY entrypoint.sh /action/entrypoint.sh
 
 # Make the entrypoint script executable
