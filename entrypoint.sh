@@ -3,6 +3,9 @@
 
 set -e
 
+# Add the repository to Git's safe directory list
+git config --global --add safe.directory /github/workspace
+
 # Extract PR details from the event payload
 PR_NUMBER=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)
 PR_TITLE=$(jq --raw-output .pull_request.title $GITHUB_EVENT_PATH)
