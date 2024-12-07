@@ -13,22 +13,29 @@ GITHUB_API_URL = f'https://api.github.com/repos/{os.getenv("GITHUB_REPOSITORY")}
 
 # Function to validate the versioning rules
 def validate_version(pr_version, main_version):
-    pr_version_parts = pr_version.split('.')
-    main_version_parts = main_version.split('.')
+    pr_major, pr_minor, pr_patch = map(int, pr_version.split('.'))
+    main_major, main_minor, main_patch = map(int, main_version.split('.'))
 
-    pr_major, pr_minor, pr_patch = map(int, pr_version_parts)
-    main_major, main_minor, main_patch = map(int, main_version_parts)
-
+    # Ensure PR version is greater than the main version
     if semver.compare(pr_version, main_version) <= 0:
         print(f"Error: PR version ({pr_version}) is not valid. It must increment according to semantic versioning rules.")
         sys.exit(1)
 
-    if pr_major > main_major and (pr_minor != 0 or pr_patch != 0):
-        print("Error: Major version increment requires MINOR and PATCH to reset to 0.")
-        sys.exit(1)
+    # Major version increment: minor and patch must reset to 0
+    if pr_major > main_major:
+        if pr_minor != 0 or pr_patch != 0:
+            print("Error: Major version increment requires MINOR and PATCH to reset to 0.")
+            sys.exit(1)
 
-    if pr_major == main_major and pr_minor > main_minor and pr_patch != 0:
-        print("Error: Minor version increment requires PATCH to reset to 0.")
+    # Minor version increment: patch must reset to 0
+    elif pr_minor > main_minor:
+        if pr_patch != 0:
+            print("Error: Minor version increment requires PATCH to reset to 0.")
+            sys.exit(1)
+
+    # Patch increment: must be sequential
+    elif pr_patch != main_patch + 1:
+        print(f"Error: Patch version increment must be sequential. Current patch: {main_patch}, PR patch: {pr_patch}.")
         sys.exit(1)
 
     print(f"Version {pr_version} is valid.")
