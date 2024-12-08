@@ -18,18 +18,18 @@ PR_TITLE=$(jq --raw-output .pull_request.title $GITHUB_EVENT_PATH)
 PR_VERSION=$(grep '^version=' library.properties | cut -d'=' -f2)
 MAIN_VERSION=$(git fetch origin main && git checkout origin/main -- library.properties && grep '^version=' library.properties | cut -d'=' -f2)
 
-# Install arduino-cli manually
-if ! command -v arduino-cli &> /dev/null
+# Install arduino-lint manually
+if ! command -v arduino-lint &> /dev/null
 then
-  echo "arduino-cli not found, installing..."
+  echo "arduino-lint not found, installing..."
   
-  # Download the Arduino CLI binary
-  curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+  # Download the Arduino LINT binary
+  curl -fsSL https://raw.githubusercontent.com/arduino/arduino-lint/main/etc/install.sh | sh
   
   # Move to a directory in PATH
-  mv bin/arduino-cli /usr/local/bin/
+  mv bin/arduino-lint /usr/local/bin/
 else
-  echo "arduino-cli already installed"
+  echo "arduino-lint already installed"
 fi
 
 # Export variables for Python script
