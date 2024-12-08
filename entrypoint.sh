@@ -22,8 +22,8 @@ MAIN_VERSION=$(git fetch origin main && git checkout origin/main -- library.prop
 if ! command -v arduino-cli &> /dev/null
 then
   echo "arduino-cli not found, installing..."
-  sudo apt-get update
-  sudo apt-get install -y arduino-cli
+  apt-get update
+  apt-get install -y arduino-cli
 else
   echo "arduino-cli already installed"
 fi
