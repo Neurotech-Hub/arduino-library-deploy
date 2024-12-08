@@ -18,18 +18,22 @@ PR_TITLE=$(jq --raw-output .pull_request.title $GITHUB_EVENT_PATH)
 PR_VERSION=$(grep '^version=' library.properties | cut -d'=' -f2)
 MAIN_VERSION=$(git fetch origin main && git checkout origin/main -- library.properties && grep '^version=' library.properties | cut -d'=' -f2)
 
-# Install arduino-cli manually
-if ! command -v arduino-cli &> /dev/null
-then
-  echo "arduino-cli not found, installing..."
-  
-  # Download the Arduino CLI binary
-  curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-  
-  # Move to a directory in PATH
-  mv bin/arduino-cli /usr/local/bin/
+# Install arduino-cli manually if not already installed
+if ! command -v arduino-cli &> /dev/null; then
+    echo "Installing latest arduino-cli..."
+    
+    # Set the installation directory
+    INSTALL_DIR="/github/workspace/bin"
+    mkdir -p "$INSTALL_DIR"
+    
+    # Download and install the latest version of Arduino CLI
+    curl -fsSL https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Linux_64bit.tar.gz | tar -xz -C "$INSTALL_DIR"
+    
+    # Add to PATH
+    export PATH="$INSTALL_DIR:$PATH"
+    echo "arduino-cli installed successfully at $INSTALL_DIR"
 else
-  echo "arduino-cli already installed"
+    echo "arduino-cli already installed."
 fi
 
 # Export variables for Python script
