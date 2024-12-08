@@ -2,59 +2,108 @@ import os
 import requests
 import semver
 import sys
+import re
+from pathlib import Path
+import subprocess
 
 # Get inputs
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 pr_version = os.getenv('pr_version')
 main_version = os.getenv('main_version')
 
-# GitHub API URL to merge PR
 GITHUB_API_URL = f'https://api.github.com/repos/{os.getenv("GITHUB_REPOSITORY")}/pulls/{os.getenv("PR_NUMBER")}/merge'
 
-import semver
+# Enhanced validation: library.properties validation
+def validate_library_metadata():
+    library_properties_path = Path("library.properties")
 
+    if not library_properties_path.exists():
+        print("Error: library.properties file is missing.")
+        sys.exit(1)
+
+    required_fields = ["name", "version", "author", "maintainer", "sentence", "paragraph", "category", "url"]
+    with open(library_properties_path, "r") as file:
+        content = file.read()
+
+    for field in required_fields:
+        if not re.search(f"^{field}=", content, re.MULTILINE):
+            print(f"Error: Required field '{field}' is missing in library.properties.")
+            sys.exit(1)
+
+    print("library.properties validation passed.")
+
+# Enhanced validation: dependency checks
+def validate_dependencies():
+    library_properties_path = Path("library.properties")
+
+    with open(library_properties_path, "r") as file:
+        content = file.read()
+
+    dependencies = [line.split("=")[1].strip() for line in content.splitlines() if line.startswith("depends=")]
+    if dependencies:
+        print("Validating dependencies...")
+        for dependency in dependencies:
+            # Simulate a check (real-world scenarios would involve verifying against a database or registry)
+            print(f"Checking dependency: {dependency}")
+            if not re.match(r"^[a-zA-Z0-9_]+$", dependency):  # Basic validation for valid names
+                print(f"Error: Invalid dependency format: {dependency}")
+                sys.exit(1)
+        print("All dependencies are valid.")
+    else:
+        print("No dependencies found.")
+
+# Enhanced validation: code style validation using Arduino CLI
+def validate_code_style():
+    try:
+        result = subprocess.run(
+            ["arduino-cli", "lint"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        print("Code style validation passed.")
+        print(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print("Error: Code style validation failed.")
+        print(e.stderr)
+        sys.exit(1)
+
+# Semantic version validation (unchanged from original)
 def validate_version(pr_version, main_version):
     try:
-        # Ensure versions are valid semantic versions
         semver.parse(pr_version)
         semver.parse(main_version)
     except ValueError:
         print(f"Error: One of the versions ({pr_version} or {main_version}) is not a valid semantic version.")
         sys.exit(1)
 
-    # Parse version parts
     pr_major, pr_minor, pr_patch, pr_prerelease, _ = semver.parse_version_info(pr_version)
     main_major, main_minor, main_patch, _, _ = semver.parse_version_info(main_version)
 
-    # Ensure PR version is greater than the main version
     if semver.compare(pr_version, main_version) <= 0:
         print(f"Error: PR version ({pr_version}) must be greater than main version ({main_version}).")
         sys.exit(1)
 
-    # Major version increment: minor and patch must reset to 0
     if pr_major > main_major:
         if pr_minor != 0 or pr_patch != 0:
             print("Error: Major version increment requires MINOR and PATCH to reset to 0.")
             sys.exit(1)
 
-    # Minor version increment: patch must reset to 0
     elif pr_minor > main_minor:
         if pr_patch != 0:
             print("Error: Minor version increment requires PATCH to reset to 0.")
             sys.exit(1)
 
-    # Patch increment: must be sequential
     elif pr_patch != main_patch + 1:
         print(f"Error: Patch version increment must be sequential. Current patch: {main_patch}, PR patch: {pr_patch}.")
         sys.exit(1)
 
-    # Pre-release validation (if applicable)
     if pr_prerelease:
         print(f"Warning: PR version ({pr_version}) includes a pre-release tag. This is acceptable if intended.")
-    
+
     print(f"Version {pr_version} is valid.")
 
-# Function to merge PR
+# Function to merge PR (unchanged from original)
 def merge_pr():
     headers = {
         'Authorization': f'token {GITHUB_TOKEN}',
@@ -74,7 +123,7 @@ def merge_pr():
         print(f"Error merging PR: {response.content}")
         sys.exit(1)
 
-# Function to create release
+# Function to create release (unchanged from original)
 def create_release():
     headers = {
         'Authorization': f'token {GITHUB_TOKEN}',
@@ -102,6 +151,15 @@ def create_release():
 def main():
     print(f"Validating version {pr_version} against main version {main_version}...")
     validate_version(pr_version, main_version)
+
+    print("Validating library metadata...")
+    validate_library_metadata()
+
+    print("Validating dependencies...")
+    validate_dependencies()
+
+    print("Validating code style...")
+    validate_code_style()
 
     print("Merging the pull request...")
     merge_pr()
