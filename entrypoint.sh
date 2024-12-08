@@ -18,6 +18,16 @@ PR_TITLE=$(jq --raw-output .pull_request.title $GITHUB_EVENT_PATH)
 PR_VERSION=$(grep '^version=' library.properties | cut -d'=' -f2)
 MAIN_VERSION=$(git fetch origin main && git checkout origin/main -- library.properties && grep '^version=' library.properties | cut -d'=' -f2)
 
+# Install arduino-cli (if not already installed)
+if ! command -v arduino-cli &> /dev/null
+then
+  echo "arduino-cli not found, installing..."
+  sudo apt-get update
+  sudo apt-get install -y arduino-cli
+else
+  echo "arduino-cli already installed"
+fi
+
 # Export variables for Python script
 export GITHUB_TOKEN=$GITHUB_TOKEN
 export PR_NUMBER
