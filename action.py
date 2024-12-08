@@ -56,7 +56,7 @@ def validate_dependencies():
 def validate_code_style():
     try:
         result = subprocess.run(
-            ["arduino-lint"],
+            ["arduino-lint", "--library-manager", "update"],
             capture_output=True,
             text=True,
             check=True
