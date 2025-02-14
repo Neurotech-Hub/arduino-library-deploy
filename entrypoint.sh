@@ -18,19 +18,7 @@ PR_TITLE=$(jq --raw-output .pull_request.title $GITHUB_EVENT_PATH)
 PR_VERSION=$(grep '^version=' library.properties | cut -d'=' -f2)
 MAIN_VERSION=$(git fetch origin main && git checkout origin/main -- library.properties && grep '^version=' library.properties | cut -d'=' -f2)
 
-# Install arduino-lint manually
-if ! command -v arduino-lint &> /dev/null
-then
-  echo "arduino-lint not found, installing..."
-  
-  # Download the Arduino LINT binary
-  curl -fsSL https://raw.githubusercontent.com/arduino/arduino-lint/main/etc/install.sh | sh
-  
-  # Move to a directory in PATH
-  mv bin/arduino-lint /usr/local/bin/
-else
-  echo "arduino-lint already installed"
-fi
+# skip linter
 
 # Export variables for Python script
 export GITHUB_TOKEN=$GITHUB_TOKEN

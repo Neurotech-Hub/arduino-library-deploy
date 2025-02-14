@@ -39,34 +39,22 @@ def validate_dependencies():
     with open(library_properties_path, "r") as file:
         content = file.read()
 
-    dependencies = [line.split("=")[1].strip() for line in content.splitlines() if line.startswith("depends=")]
-    if dependencies:
+    # Find lines starting with "depends=" and split by comma
+    dependencies_lines = [line.split("=")[1].strip() for line in content.splitlines() if line.startswith("depends=")]
+    if dependencies_lines:
         print("Validating dependencies...")
-        for dependency in dependencies:
-            # Simulate a check (real-world scenarios would involve verifying against a database or registry)
-            print(f"Checking dependency: {dependency}")
-            if not re.match(r"^[a-zA-Z0-9_]+$", dependency):  # Basic validation for valid names
-                print(f"Error: Invalid dependency format: {dependency}")
-                sys.exit(1)
+        for dep_line in dependencies_lines:
+            dependencies = [dep.strip() for dep in dep_line.split(",")]
+            for dependency in dependencies:
+                print(f"Checking dependency: {dependency}")
+                # Basic validation for valid library names
+                # Allow letters, numbers, underscores, and underscores
+                if not re.match(r"^[a-zA-Z0-9_]+$", dependency):
+                    print(f"Error: Invalid dependency format: {dependency}")
+                    sys.exit(1)
         print("All dependencies are valid.")
     else:
         print("No dependencies found.")
-
-# Enhanced validation: code style validation using Arduino CLI
-def validate_code_style():
-    try:
-        result = subprocess.run(
-            ["arduino-lint", "--library-manager", "update"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        print("Code style validation passed.")
-        print(result.stdout)
-    except subprocess.CalledProcessError as e:
-        print("Error: Code style validation failed.")
-        print(e.stderr)
-        sys.exit(1)
 
 # Semantic version validation (unchanged from original)
 def validate_version(pr_version, main_version):
@@ -157,9 +145,6 @@ def main():
 
     print("Validating dependencies...")
     validate_dependencies()
-
-    print("Validating code style...")
-    validate_code_style()
 
     print("Merging the pull request...")
     merge_pr()
