@@ -48,8 +48,8 @@ def validate_dependencies():
             for dependency in dependencies:
                 print(f"Checking dependency: {dependency}")
                 # Basic validation for valid library names
-                # Allow letters, numbers, underscores, and underscores
-                if not re.match(r"^[a-zA-Z0-9_]+$", dependency):
+                # Allow letters, numbers, underscores, spaces, and hyphens
+                if not re.match(r"^[a-zA-Z0-9_ -]+$", dependency):
                     print(f"Error: Invalid dependency format: {dependency}")
                     sys.exit(1)
         print("All dependencies are valid.")
